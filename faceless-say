@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+TEXT=("")
+wrap_width="${wrap_width:-40}"
+
+get_text() {
+    local buffer
+    # read 1 character at a time from
+    # the file descriptor 0
+    while IFS='' read -ru 0 -n 1 read_reply; do
+        case "${read_reply}" in
+            # Backspace.
+            $'\177'|$'\b')
+                ((L=${#TEXT[@]}-1))
+                (( ${#TEXT[$L]} == 0 )) || {
+                    TEXT[${#TEXT[@]}-1]=${TEXT[$L]:: -1}
+                    printf -- '\r\e[2K%s' "${TEXT[${#TEXT[@]}-1]}"
+                }
+            ;;
+            
+            # newline
+            '')
+                # If there is double newline insert newline
+                if [[ $buffer == '' ]]; then
+                    TEXT=( "${TEXT[@]}" "" )
+                    buffer=
+                else
+                    buffer=''
+                fi
+            ;;
+
+            # space
+            " ")
+                if [[ $buffer != ' ' ]]; then
+                    TEXT[${#TEXT[@]}-1]+=" "
+                    buffer=' '
+                fi
+            ;;
+
+            # ctrl+d
+            $'\004')
+                printf "\n"
+                break
+            ;;
+
+            # charcaters, numbers and punctuation
+            [[:alnum:]] |\
+            [[:punct:]] )
+                buffer=
+                TEXT[${#TEXT[@]}-1]+="$read_reply"
+            ;;
+        esac
+    done
+}
+
+wrap_text() {
+    local curr=0
+    while :; do
+        if (( ${#TEXT[curr]} > wrap_width )); then
+            for (( i=wrap_width;i>=0;i-- ));do
+                # if the the string is a single word
+                # longer than wrap_width
+                (( i==0 )) && {
+                    TEXT=( "${TEXT[@]::curr}"
+                           "${TEXT[curr]::wrap_width}"
+                           "${TEXT[curr]:wrap_width}"
+                           "${TEXT[@]:curr+1}"
+                         )
+                    break
+                }
+                # If a space or punctuation is
+                # encountered break the line at that point
+                [[ " !#$.,;]})" == *${TEXT[curr]:i:1}* ]] && {
+                    TEXT=( "${TEXT[@]::curr}"
+                           "${TEXT[curr]::i}"
+                           "${TEXT[curr]:i}"
+                           "${TEXT[@]:curr+1}"
+                         )
+                    break
+                }
+            done
+        fi
+
+        (( curr++ ))
+        (( curr=="${#TEXT[@]}" )) && break
+    done
+}
+
+box_text() {
+    # max_width : the length of the longest string in TEST
+    local max_width=0
+    for line in "${TEXT[@]}"; do
+        # if max_width smaller than length of current line
+        # set max_width as the length of the line
+        (( ${#line} >= max_width )) && max_width="${#line}"
+    done
+
+    # store max_width spaces in spaces
+    printf -v spaces "%${max_width}s"
+    # insert top bar
+    printf ".%s.\n" "${spaces// /-}"
+
+    # ${TEXT[@]:: -1} not used because
+    # of this error popping up
+    # -1: substring expression < 0
+    for line in "${TEXT[@]::${#TEXT[@]}-1}"; do
+        # " %s|\r|%s\n"
+        # " " : A space at the start to accomodate the starting bar
+        # %s| : to print the spaces and end it with a |
+        # \r  : to return the cursor to the start of the line
+        # |%s : to insert the starting bar and text
+        printf " %s|\r|%s\n" "${spaces}" "${line}"
+    done
+    # insert bottom bar
+    printf "'%s'\n" "${spaces// /-}"
+
+}
+
+get_text
+wrap_text
+box_text
+
+printf "\
+    \\
+     \\
+     ______
+   .'      '.
+   |        |
+   | .      |
+ _.' '.____.'.__
+/_______________\\
+"
