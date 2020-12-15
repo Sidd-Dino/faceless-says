@@ -1,3 +1,13 @@
 faceless-says                                                   A cowsay variant
 ________________________________________________________________________________
 
+An attempt to make a cowsay like program purely in bash.
+
+TODO
+________________________________________________________________________________
+
+[ ] various cmd line arguments
+[ ] various/custom ascii art characters
+[ ] documentation
+[ ] 
+[ ] .... no clue what's next

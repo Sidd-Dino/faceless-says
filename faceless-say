@@ -20,10 +20,10 @@ get_text() {
             
             # newline
             '')
-                # If there is double newline insert newline
+                # If double newline occurs insert single newline
                 if [[ $buffer == '' ]]; then
                     TEXT=( "${TEXT[@]}" "" )
-                    buffer=
+                    unset buffer
                 else
                     buffer=''
                 fi
@@ -46,7 +46,7 @@ get_text() {
             # charcaters, numbers and punctuation
             [[:alnum:]] |\
             [[:punct:]] )
-                buffer=
+                unset buffer
                 TEXT[${#TEXT[@]}-1]+="$read_reply"
             ;;
         esac
@@ -116,11 +116,8 @@ box_text() {
 
 }
 
-get_text
-wrap_text
-box_text
-
-printf "\
+print_faceless() {
+    printf "\
     \\
      \\
      ______
@@ -130,3 +127,9 @@ printf "\
  _.' '.____.'.__
 /_______________\\
 "
+}
+
+get_text
+wrap_text
+box_text
+print_faceless
