@@ -1,18 +1,43 @@
-faceless-says                                                   A cowsay variant
+ __
+|_
+|  ACELESS-SAYS
 ________________________________________________________________________________
 
 An attempt to make a cowsay like program purely in bash.
 
-TODO
+
+Installation
 ________________________________________________________________________________
 
-[ ] various cmd line arguments
-[ ] various/custom ascii art characters
-[ ] documentation
-[ ] .... no clue what's next
+><> make install
 
 
-Preview
+Usage
+________________________________________________________________________________
+
+# Input
+------------
+## Use as is to input text after execution
+  ><> faceless-says
+        (OR)
+## Pipe output into it
+  ><> fortune | faceless-says
+
+
+# ASCII art
+------------
+## To change the face used by faceless-says
+  ><> export FACE="name_of_the_face"
+  *Example
+  ><> export FACE="dog"
+
+## Custom face files
+- Create a dir called 'faces' in '~/.cache'
+- store the ascii file inside with whatever name you want
+- See "example_face_file" for reference
+
+
+Preview (sorta....)
 ________________________________________________________________________________
 
 ><> fortune | faceless-say 

@@ -2,6 +2,8 @@
 
 TEXT=("")
 wrap_width="${wrap_width:-40}"
+face_file=${FACE:-default}
+
 
 get_text() {
     local buffer
@@ -84,6 +86,15 @@ wrap_text() {
         (( curr++ ))
         (( curr=="${#TEXT[@]}" )) && break
     done
+
+    # When text of multiple lines gets
+    # wrapped it creates an empty in the end
+    # this check removes that empty line
+    local last_line="${TEXT[*]: -1}"
+    (( "${#last_line}" == 0 )) && \
+        # ${TEXT[@]:: -1} not used because of
+        # unknown behaviour
+        TEXT=( "${TEXT[@]::${#TEXT[@]}-1}" )
 }
 
 box_text() {
@@ -100,10 +111,7 @@ box_text() {
     # insert top bar
     printf ".%s.\n" "${spaces// /-}"
 
-    # ${TEXT[@]:: -1} not used because
-    # of this error popping up
-    # -1: substring expression < 0
-    for line in "${TEXT[@]::${#TEXT[@]}-1}"; do
+    for line in "${TEXT[@]}"; do
         # " %s|\r|%s\n"
         # " " : A space at the start to accomodate the starting bar
         # %s| : to print the spaces and end it with a |
@@ -117,19 +125,29 @@ box_text() {
 }
 
 print_faceless() {
-    printf "\
-    \\
-     \\
-     ______
-   .'      '.
-   |        |
-   | .      |
- _.' '.____.'.__
-/_______________\\
-"
+    # repeated check instead of using
+    # > printf '%s\n' "$(<"/usr/share/faces/$face_file")" 2>/dev/null && return
+    # > printf '%s\n' "$(<"$HOME/.cache/faces/$face_file")" 
+    [[ -r "/usr/share/faces/$face_file" ]] && {
+        printf '%s\n' "$(<"/usr/share/faces/$face_file")"
+        return
+    }
+    
+    printf '%s\n' "$(<"$HOME/.cache/faces/$face_file")" 
 }
 
-get_text
-wrap_text
-box_text
-print_faceless
+
+main() {
+    [[ -r "/usr/share/faces/$face_file"      ||\
+       -r "$HOME/.cache/faces/$face_file" ]] || {
+        printf "[ERR] face file \'%s\' doesnt exist\n" "$face_file" >&2
+        return
+    }
+
+    get_text
+    wrap_text
+    box_text
+    print_faceless
+}
+
+main "$@"
