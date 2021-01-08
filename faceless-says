@@ -125,7 +125,7 @@ box_text() {
 }
 
 print_faceless() {
-    # repeated check instead of using
+    # if used instead of using
     # > printf '%s\n' "$(<"/usr/share/faces/$face_file")" 2>/dev/null && return
     # > printf '%s\n' "$(<"$HOME/.cache/faces/$face_file")" 
     [[ -r "/usr/share/faces/$face_file" ]] && {
@@ -135,7 +135,6 @@ print_faceless() {
     
     printf '%s\n' "$(<"$HOME/.cache/faces/$face_file")" 
 }
-
 
 main() {
     [[ -r "/usr/share/faces/$face_file"      ||\
